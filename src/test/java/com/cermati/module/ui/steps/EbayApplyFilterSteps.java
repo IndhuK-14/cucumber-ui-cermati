@@ -12,11 +12,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class EbayApplyFilterSteps {
 
     private EbayHomePage ebayHomePage = new EbayHomePage();
-    String category="";
-    String condition="";
-    String minPrice="";
-    String maxPrice="";
-    String itemLocation="";
+    String category = "";
+    String minPrice = "";
+    String maxPrice = "";
 
     @Given("user with ebay web page")
     public void userOpenEbayWebPage() {
@@ -30,7 +28,7 @@ public class EbayApplyFilterSteps {
 
     @And("user selects category as {string}")
     public void userSelectsCategoryAsElectronicsCellPhonesAccessories(String category) {
-        this.category=category;
+        this.category = category;
         ebayHomePage.selectCategory();
     }
 
@@ -51,21 +49,19 @@ public class EbayApplyFilterSteps {
 
     @And("user applies condition filter as {string}")
     public void userAppliesConditionFilterAsOpenBox(String condition) {
-        this.condition=condition;
-        ebayHomePage.clickOnConditionFilter(condition);
+        ebayHomePage.clickOnConditionFilter();
     }
 
     @And("user applies price filter as {string} to {string}")
-    public void userAppliesPriceFilterAsTo(String minPrice,String maxPrice) {
-        this.minPrice=minPrice;
-        this.maxPrice=maxPrice;
-        ebayHomePage.clickOnPriceFilter(minPrice,maxPrice);
+    public void userAppliesPriceFilterAsTo(String minPrice, String maxPrice) {
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+        ebayHomePage.clickOnPriceFilter(minPrice, maxPrice);
     }
 
     @And("user applies item location filter as {string}")
     public void userAppliesItemLocationFilterAsUSOnly(String location) {
-        itemLocation=location;
-        ebayHomePage.clickOnItemLocationFilter(itemLocation);
+        ebayHomePage.clickOnItemLocationFilter();
     }
 
     @And("user clicks on apply in the all filter popup")
@@ -75,13 +71,44 @@ public class EbayApplyFilterSteps {
 
     @Then("verify product list displayed are based on price filter applied")
     public void verifyProductListDisplayedAreBasedOnPriceFilterApplied() {
-        assertThat("Products are not dispalyed in given price range filter", ebayHomePage.verifyProductDisplayedAreInGivenRange(),everyItem(equalTo(true)));
+        assertThat("Products are not displayed in given price range filter", ebayHomePage.verifyProductDisplayedAreInGivenRange(), everyItem(equalTo(true)));
     }
 
     @And("verify price filter is applied by verify the header value")
     public void verifyPriceFilterIsAppliedByVerifyTheHeaderValue() {
-        String verifyPrice= ebayHomePage.verifyPriceFilterApplied();
-        assertThat("Min Price filter applied is not displayed in the header",verifyPrice,containsString(minPrice));
-        assertThat("Max Price filter applied is not displayed in the header",verifyPrice,containsString(maxPrice));
+        String verifyPrice = ebayHomePage.verifyPriceFilterApplied();
+        assertThat("Min Price filter applied is not displayed in the header", verifyPrice, containsString(minPrice));
+        assertThat("Max Price filter applied is not displayed in the header", verifyPrice, containsString(maxPrice));
+    }
+
+    @And("verify condition filter is applied as {string}")
+    public void verifyConditionFilterIsAppliedAsOpenBox(String condition) {
+        assertThat("Condition filter is not applied", ebayHomePage.verifyConditionFilterApplied(), everyItem(equalTo(condition)));
+
+    }
+
+    @And("verify item location filter is applied as {string}")
+    public void verifyItemLocationFilterIsAppliedAsUnitedStates(String location) {
+        assertThat("Item location filter is not applied", ebayHomePage.verifyLocationFilterApplied(), everyItem(containsString(location)));
+    }
+
+    @When("user searches for {string} in home page search bar")
+    public void userSearchesForMacBookInHomePageSearchBar(String keyword) {
+        ebayHomePage.searchByKeyword(keyword);
+    }
+
+    @And("user selects category as {string} in home page")
+    public void userSelectsCategoryAsElectronicsComputersTabletsNetworkingInHomePage(String category) {
+        ebayHomePage.applyComputerCategoryFilter();
+    }
+
+    @Then("verify {string} selected category filter is applied")
+    public void verifyComputersTabletsNetworkingSelectedCategoryFilterIsApplied(String category) {
+        assertThat(category + " category filter is not applied", ebayHomePage.verifyComputerCategoryFilterApplied(), containsString(category));
+    }
+
+    @And("verify search results has {string} products displayed")
+    public void verifySearchResultsHasMacBookProductsDisplayed(String searchResult) {
+        assertThat("Products are not displayed based on search filter applied", ebayHomePage.verifySearchFilterApplied(), everyItem(containsString(searchResult.toLowerCase())));
     }
 }

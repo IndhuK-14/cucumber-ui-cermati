@@ -5,6 +5,7 @@ import com.cermati.module.ui.util.Driver;
 import com.cermati.module.ui.util.Utility;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebElement;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 
 public class EbayHomePage {
 
+    //Locators
     String shopByCategory = "gh-shop-a";
     String category = "//div[@id='gh-sbc-o']//a[contains(text(),'Cell phones & accessories')]";
     String verifyMainCategory = "(//a[@class='seo-breadcrumb-text'])[2]//span";
@@ -28,6 +30,19 @@ public class EbayHomePage {
     String applyButton = "//div[@class='x-overlay-footer__apply']//button";
     String verifyPriceInHeader = "//h1";
     String priceList="//span[@class='s-item__price']";
+    String productList="//li[@class='s-item s-item--large']//a";
+    String verifyCondition="(//div[@class='x-item-condition-text']//span[@class='ux-textspans'])[1]";
+    String verifyLocation = "(//div[@class='ux-labels-values__values-content']//span[@class='ux-textspans ux-textspans--SECONDARY'])[1]";
+    String search = "//td[@class='gh-td-s']//input[@class='gh-tb ui-autocomplete-input']";
+    String computerCategory = "//div[@id='gh-sbc-o']//a[contains(text(),'Computers & tablets')]";
+    String verifyComputerCategory = "(//ul[@class='srp-refine__category__list']//li[@data-state='selected']//span)[1]";
+    String productNameList="//div[@class='s-item__title']";
+
+    List<String> condition;
+    List<String> itemLocation;
+    List<String> productName;
+    String minPriceValue;
+    String maxPriceValue;
 
 
     public void openEbayHomePage() {
@@ -39,7 +54,7 @@ public class EbayHomePage {
     }
 
     public void selectCategory() {
-        Driver.getDriver().findElement(By.xpath(category)).click();
+        Driver.getDriver().findElement(By.xpath(this.category)).click();
     }
 
     public String verifyCategoryFilter() {
@@ -59,7 +74,7 @@ public class EbayHomePage {
         Driver.getDriver().findElement(By.xpath(allFilter)).click();
     }
 
-    public void clickOnConditionFilter(String condition) {
+    public void clickOnConditionFilter() {
         Utility.waitAbit(2000);
         Driver.getDriver().findElement(By.xpath(conditionFilter)).click();
 
@@ -68,6 +83,9 @@ public class EbayHomePage {
     }
 
     public void clickOnPriceFilter(String minPrice, String maxPrice) {
+        minPriceValue=minPrice;
+        maxPriceValue=maxPrice;
+
         Driver.getDriver().findElement(By.xpath(priceFilter)).click();
         Utility.waitAbit(2000);
 
@@ -75,10 +93,10 @@ public class EbayHomePage {
         Driver.getDriver().findElement(By.xpath(this.maxPrice)).sendKeys(maxPrice);
     }
 
-    public void clickOnItemLocationFilter(String itemLocation) {
+    public void clickOnItemLocationFilter() {
         Driver.getDriver().findElement(By.xpath(itemLocationFilter)).click();
 
-        Utility.waitAbit(2000);
+        Utility.waitAbit(4000);
         Driver.getDriver().findElement(By.xpath(location)).click();
     }
 
@@ -91,15 +109,15 @@ public class EbayHomePage {
     }
 
     public List<Boolean> verifyProductDisplayedAreInGivenRange() {
+        //iterate over filter results and compare the price range
         List<Boolean> verify=new ArrayList<>();
-        int minimumPrice=Integer.parseInt("100");
-        int maximumPrice=Integer.parseInt("150");
+        System.out.println(minPriceValue);
+        int minimumPrice=Integer.parseInt(minPriceValue);
+        int maximumPrice=Integer.parseInt(maxPriceValue);
         List<WebElement> price = Driver.getDriver().findElements(By.xpath(priceList));
         for(int i=1;i<=price.size();i++){
-            String verifyPriceInList="(//span[@class='s-item__price'])["+i+"]";
-            System.out.println(Driver.getDriver().findElement(By.xpath(verifyPriceInList)).getText());
+            String verifyPriceInList="("+priceList+")["+i+"]";
             String splitPrice[]=Driver.getDriver().findElement(By.xpath(verifyPriceInList)).getText().split("\\.");
-            System.out.println(splitPrice[0]);
             int convertPrice=Integer.parseInt(splitPrice[0].substring(1));
             if((convertPrice>=minimumPrice && convertPrice<=maximumPrice))
                 verify.add(true);
@@ -112,7 +130,59 @@ public class EbayHomePage {
             else
                 verify.add(false);
         }
-
         return verify;
+    }
+
+    public List<String> verifyConditionFilterApplied() {
+        //In new tab,open first 5 product url from the filter results and store condition and item location
+        condition=new ArrayList<>();
+        itemLocation=new ArrayList<>();
+
+        for(int i=1;i<=2;i++){
+            String prodLink="("+productList+")["+i+"]";
+            prodLink=Driver.getDriver().findElement(By.xpath(prodLink)).getAttribute("href");
+            ((JavascriptExecutor)Driver.getDriver()).executeScript("window.open()");
+            ArrayList<String> tabs = new ArrayList<String>(Driver.getDriver().getWindowHandles());
+            Driver.getDriver().switchTo().window(tabs.get(1));
+            Driver.getDriver().get(prodLink);
+
+            condition.add(Driver.getDriver().findElement(By.xpath(verifyCondition)).getText());
+            itemLocation.add(Driver.getDriver().findElement(By.xpath(verifyLocation)).getText());
+
+            Driver.getDriver().close();
+            Driver.getDriver().switchTo().window(tabs.get(0));
+        }
+        return condition;
+    }
+
+    public List<String> verifyLocationFilterApplied() {
+        return itemLocation;
+    }
+
+
+    public void searchByKeyword(String keyword) {
+        Driver.getDriver().findElement(By.xpath(search)).sendKeys(keyword);
+        Utility.waitAbit(2000);
+        Driver.getDriver().findElement(By.xpath(search)).sendKeys(Keys.RETURN);
+        Utility.waitAbit(2000);
+    }
+
+    public void applyComputerCategoryFilter() {
+        Driver.getDriver().findElement(By.xpath(computerCategory)).click();
+    }
+
+    public String verifyComputerCategoryFilterApplied() {
+        return Driver.getDriver().findElement(By.xpath(verifyComputerCategory)).getText();
+    }
+
+    public List<String> verifySearchFilterApplied() {
+        //iterate over search results and store product name
+        productName = new ArrayList<>();
+        List<WebElement> product = Driver.getDriver().findElements(By.xpath(productNameList));
+        for(int i=2;i<=product.size();i++){
+            String name="("+productNameList+")["+i+"]";
+            productName.add(Driver.getDriver().findElement(By.xpath(name)).getText().toLowerCase());
+        }
+        return productName;
     }
 }

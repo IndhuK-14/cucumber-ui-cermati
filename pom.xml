@@ -71,7 +71,7 @@
                 <version>${maven.surefire.version}</version>
                 <configuration>
                     <includes>
-                        <include>**/ParallelRun.java</include>
+                        <include>**/CucumberRunner.java</include>
                     </includes>
                 </configuration>
             </plugin>
